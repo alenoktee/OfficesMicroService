@@ -1,5 +1,9 @@
 namespace OfficesMicroService.API.Endpoints;
 
-public class OfficeEndpoints
+public static class OfficeEndpoints
 {
+    public static void MapOfficeEndpoints(this IEndpointRouteBuilder endpoint)
+    {
+
+    }
 }

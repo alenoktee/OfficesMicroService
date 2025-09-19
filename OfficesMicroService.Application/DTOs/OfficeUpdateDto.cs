@@ -1,9 +1,8 @@
-﻿using Microsoft.OpenApi.MicrosoftExtensions;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace OfficesMicroService.Application.DTOs;
 
-public class OfficeCreateDto
+public class OfficeUpdateDto
 {
     public string? PhotoId { get; set; }
 

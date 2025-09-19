@@ -7,19 +7,16 @@ using OfficesMicroService.Domain.Entities;
 
 namespace OfficesMicroService.Infrastructure.Repositories;
 
-public class OfficeRepository : IOfficeRepository
+public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 {
-    public Task CreateAsync(Office entity)
+    protected readonly IMongoCollection<T> _collection;
+
+    public Task CreateAsync(T entity)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteAsync(Office entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> DoesAddressExistAsync(string city, string street, string houseNumber)
+    public Task<bool> DeleteAsync(T entity)
     {
         throw new NotImplementedException();
     }
@@ -29,17 +26,12 @@ public class OfficeRepository : IOfficeRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Office>> GetByCityAsync(string city)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<Office?> GetByIdAsync(string id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> UpdateAsync(Office entity)
+    public Task<bool> UpdateAsync(T entity)
     {
         throw new NotImplementedException();
     }

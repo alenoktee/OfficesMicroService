@@ -1,3 +1,10 @@
+using OfficesMicroService.API.Endpoints;
+using OfficesMicroService.Application;
+using OfficesMicroService.Application.Interfaces;
+using OfficesMicroService.Application.Services;
+using OfficesMicroService.Infrastructure;
+using OfficesMicroService.Infrastructure.Repositories;
+
 namespace OfficesMicroService;
 
 public class Program
@@ -6,7 +13,12 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers();
+        builder.Services.Configure<MongoDbSettings>(
+            builder.Configuration.GetSection("MongoDbSettings"));
+
+        builder.Services.AddSingleton<IOfficeRepository, OfficeRepository>();
+        builder.Services.AddScoped<IOfficeService, OfficeService>();
+
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
@@ -20,9 +32,7 @@ public class Program
 
         app.UseHttpsRedirection();
 
-        app.UseAuthorization();
-
-        app.MapControllers();
+        app.MapOfficeEndpoints();
 
         app.Run();
     }
