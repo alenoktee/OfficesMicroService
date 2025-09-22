@@ -1,46 +1,54 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 
+using MongoDB.Bson;
 using MongoDB.Driver;
 
-using OfficesMicroService.Application.Interfaces;
+using OfficesMicroService.Application.DTOs;
+using OfficesMicroService.Application.Interfaces.Repositories;
 using OfficesMicroService.Domain.Entities;
 
 namespace OfficesMicroService.Infrastructure.Repositories;
 
-public class OfficeRepository : IOfficeRepository
+public class OfficeRepository : GenericRepository<Office>, IOfficeRepository
 {
-    public Task CreateAsync(Office entity)
+    public OfficeRepository(IMongoClient client, IOptions<MongoDbSettings> settings) : base(client, settings) { }
+
+    public async Task<IEnumerable<Office>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Office>.Filter.Eq(o => o.City, city);
+        return await _collection.Find(filter).ToListAsync(cancellationToken);
     }
 
-    public Task<bool> DeleteAsync(Office entity)
+    public async Task<bool> DoesAddressExistAsync(string city, string street, string houseNumber, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Office>.Filter.And(
+            Builders<Office>.Filter.Eq(o => o.City, city),
+            Builders<Office>.Filter.Eq(o => o.Street, street),
+            Builders<Office>.Filter.Eq(o => o.HouseNumber, houseNumber)
+        );
+        return await _collection.Find(filter).AnyAsync(cancellationToken);
     }
 
-    public Task<bool> DoesAddressExistAsync(string city, string street, string houseNumber)
+    public async Task<bool> UpdateDetailsAsync(string id, OfficeUpdateDto dto, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
-    }
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return false;
+        }
 
-    public Task<IEnumerable<Office>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
+        var filter = Builders<Office>.Filter.Eq(o => o.Id, objectId);
 
-    public Task<IEnumerable<Office>> GetByCityAsync(string city)
-    {
-        throw new NotImplementedException();
-    }
+        var update = Builders<Office>.Update
+            .Set(o => o.PhotoId, dto.PhotoId)
+            .Set(o => o.City, dto.City)
+            .Set(o => o.Street, dto.Street)
+            .Set(o => o.HouseNumber, dto.HouseNumber)
+            .Set(o => o.OfficeNumber, dto.OfficeNumber)
+            .Set(o => o.RegistryPhoneNumber, dto.RegistryPhoneNumber)
+            .Set(o => o.IsActive, dto.IsActive);
 
-    public Task<Office?> GetByIdAsync(string id)
-    {
-        throw new NotImplementedException();
-    }
+        var result = await _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
 
-    public Task<bool> UpdateAsync(Office entity)
-    {
-        throw new NotImplementedException();
+        return result.IsAcknowledged && result.ModifiedCount > 0;
     }
 }

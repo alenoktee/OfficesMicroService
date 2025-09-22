@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 
 using OfficesMicroService.Application.DTOs;
 using OfficesMicroService.Domain.Entities;
@@ -11,5 +11,8 @@ public class MappingProfile : Profile
     {
         CreateMap<OfficeCreateDto, Office>();
         CreateMap<OfficeUpdateDto, Office>();
+
+        CreateMap<Office, OfficeDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()));
     }
 }

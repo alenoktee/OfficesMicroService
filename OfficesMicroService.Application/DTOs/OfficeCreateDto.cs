@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.MicrosoftExtensions;
+using Microsoft.OpenApi.MicrosoftExtensions;
 using System.ComponentModel.DataAnnotations;
 
 namespace OfficesMicroService.Application.DTOs;
@@ -8,20 +8,20 @@ public class OfficeCreateDto
     public string? PhotoId { get; set; }
 
     [Required(ErrorMessage = "Please, enter the office's city")]
-    public required string City { get; set; }
+    public string City { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please, enter the office’s street")]
-    public required string Street { get; set; }
+    public string Street { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please, enter the office’s house number")]
-    public required string HouseNumber { get; set; }
+    public string HouseNumber { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please, enter the office’s number")]
-    public required string OfficeNumber { get; set; }
+    public string OfficeNumber { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please, enter the phone number")]
     [Phone(ErrorMessage = "You've entered an invalid phone number")]
-    public required string RegistryPhoneNumber { get; set; }
+    public string RegistryPhoneNumber { get; set; } = string.Empty;
 
     public bool IsActive { get; set; } = true;
 }
