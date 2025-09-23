@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
 
 using OfficesMicroService.Application.DTOs;
 using OfficesMicroService.Application.Interfaces.Services;
+using OfficesMicroService.Domain.Entities;
+
+using System.ComponentModel.DataAnnotations;
 
 namespace OfficesMicroService.API.Endpoints;
 
@@ -14,19 +19,19 @@ public static class OfficeEndpoints
         group.MapGet("/", async Task<IResult> (IOfficeService service, CancellationToken ct) =>
         {
             var offices = await service.GetAllAsync(ct);
-            return Results.Ok(offices);
+            return offices is not null ? Results.Ok(offices) : Results.NotFound();
         });
 
         group.MapGet("/{id}", async (string id, IOfficeService service, CancellationToken ct) =>
         {
             var office = await service.GetByIdAsync(id, ct);
-            return Results.Ok(office);
+            return office is not null ? Results.Ok(office) : Results.NotFound();
         });
 
         group.MapPost("/", async (OfficeCreateDto officeCreateDto, IOfficeService service, CancellationToken ct) =>
         {
-            var newOffice = await service.CreateAsync(officeCreateDto, ct);
-            return Results.Created($"/offices/{newOffice.Id}", newOffice);
+            var office = await service.CreateAsync(officeCreateDto, ct);
+            return Results.Created($"/offices/{office.Id}", office);
         })
         .AddEndpointFilter<ValidationFilter<OfficeCreateDto>>();
 

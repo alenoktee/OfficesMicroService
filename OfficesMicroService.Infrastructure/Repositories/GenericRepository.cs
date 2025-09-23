@@ -33,11 +33,8 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 
     public async Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return null;
-        }
-        return await _collection.Find(e => e.Id == objectId).FirstOrDefaultAsync(cancellationToken);
+        var filter = Builders<T>.Filter.Eq(e => e.Id, id);
+        return await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task CreateAsync(T entity, CancellationToken cancellationToken = default)
@@ -47,18 +44,15 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 
     public async Task<bool> UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        var result = await _collection.ReplaceOneAsync(e => e.Id == entity.Id, entity, cancellationToken: cancellationToken);
+        var filter = Builders<T>.Filter.Eq(e => e.Id, entity.Id);
+        var result = await _collection.ReplaceOneAsync(filter, entity, cancellationToken: cancellationToken);
         return result.IsAcknowledged && result.ModifiedCount > 0;
     }
 
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return false;
-        }
-
-        var result = await _collection.DeleteOneAsync(e => e.Id == objectId, cancellationToken);
+        var filter = Builders<T>.Filter.Eq(e => e.Id, id);
+        var result = await _collection.DeleteOneAsync(filter, cancellationToken);
         return result.IsAcknowledged && result.DeletedCount > 0;
     }
 }

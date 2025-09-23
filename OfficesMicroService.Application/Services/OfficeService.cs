@@ -1,5 +1,7 @@
 using AutoMapper;
 
+using MongoDB.Driver;
+
 using OfficesMicroService.Application.DTOs;
 using OfficesMicroService.Application.Exceptions;
 using OfficesMicroService.Application.Interfaces.Repositories;
@@ -24,14 +26,16 @@ public class OfficeService : IOfficeService
 
     public async Task<OfficeDto> CreateAsync(OfficeCreateDto officeCreateDto, CancellationToken cancellationToken = default)
     {
-        var addressExists = await _officeRepository.DoesAddressExistAsync(officeCreateDto.City, officeCreateDto.Street, officeCreateDto.HouseNumber, cancellationToken);
-        if (addressExists)
+        var office = _mapper.Map<Office>(officeCreateDto);
+        try
+        {
+            await _officeRepository.CreateAsync(office, cancellationToken);
+        }
+        catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {
             throw new DuplicateAddressException("An office with this address already exists.");
         }
 
-        var office = _mapper.Map<Office>(officeCreateDto);
-        await _officeRepository.CreateAsync(office, cancellationToken);
         return _mapper.Map<OfficeDto>(office);
     }
 
@@ -59,21 +63,63 @@ public class OfficeService : IOfficeService
 
     public async Task UpdateAsync(string id, OfficeUpdateDto officeUpdateDto, CancellationToken cancellationToken = default)
     {
-        var office = await _officeRepository.GetByIdAsync(id, cancellationToken);
-        if (office is null)
+        var updateBuilder = Builders<Office>.Update;
+        var updates = new List<UpdateDefinition<Office>>();
+
+        if (!string.IsNullOrEmpty(officeUpdateDto.PhotoId))
         {
-            throw new NotFoundException($"Office with id '{id}' not found.");
+            updates.Add(updateBuilder.Set(o => o.PhotoId, officeUpdateDto.PhotoId));
         }
-        await _officeRepository.UpdateDetailsAsync(id, officeUpdateDto, cancellationToken);
+
+        if (!string.IsNullOrEmpty(officeUpdateDto.City))
+        {
+            updates.Add(updateBuilder.Set(o => o.City, officeUpdateDto.City));
+        }
+
+        if (!string.IsNullOrEmpty(officeUpdateDto.Street))
+        {
+            updates.Add(updateBuilder.Set(o => o.Street, officeUpdateDto.Street));
+        }
+
+        if (!string.IsNullOrEmpty(officeUpdateDto.HouseNumber))
+        {
+            updates.Add(updateBuilder.Set(o => o.HouseNumber, officeUpdateDto.HouseNumber));
+        }
+
+        if (!string.IsNullOrEmpty(officeUpdateDto.OfficeNumber))
+        {
+            updates.Add(updateBuilder.Set(o => o.OfficeNumber, officeUpdateDto.OfficeNumber));
+        }
+
+        if (!string.IsNullOrEmpty(officeUpdateDto.RegistryPhoneNumber))
+        {
+            updates.Add(updateBuilder.Set(o => o.RegistryPhoneNumber, officeUpdateDto.RegistryPhoneNumber));
+        }
+
+        updates.Add(updateBuilder.Set(o => o.IsActive, officeUpdateDto.IsActive));
+
+        if (updates.Count == 0)
+        {
+            return;
+        }
+
+        var combinedUpdate = updateBuilder.Combine(updates);
+        var result = await _officeRepository.PartialUpdateAsync(id, combinedUpdate, cancellationToken);
+
+        if (!result)
+        {
+            throw new NotFoundException($"Office with id '{id}' not found or not modified.");
+        }
     }
 
     public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        var office = await _officeRepository.GetByIdAsync(id, cancellationToken);
-        if (office is null)
+        var result = await _officeRepository.DeleteAsync(id, cancellationToken);
+        if (!result)
         {
             throw new NotFoundException($"Office with id '{id}' not found.");
         }
-        await _officeRepository.DeleteAsync(id, cancellationToken);
+
+        // подумать
     }
 }
