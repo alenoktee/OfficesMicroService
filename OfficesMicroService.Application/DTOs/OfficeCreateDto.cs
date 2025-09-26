@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OfficesMicroService.Application.DTOs;
 
-public class OfficeCreateDto : SaveOfficeDto
+public class OfficeCreateDto : OfficeUpdateDto
 {
 
 }

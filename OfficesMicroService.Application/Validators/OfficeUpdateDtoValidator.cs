@@ -3,9 +3,9 @@ using OfficesMicroService.Application.DTOs;
 
 namespace OfficesMicroService.Application.Validators;
 
-public class SaveOfficeDtoValidator : AbstractValidator<SaveOfficeDto>
+public class OfficeUpdateDtoValidator : AbstractValidator<OfficeUpdateDto>
 {
-    public SaveOfficeDtoValidator()
+    public OfficeUpdateDtoValidator()
     {
         RuleFor(o => o.City)
             .NotEmpty().WithMessage("Please, enter the office's city")

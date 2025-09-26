@@ -36,7 +36,7 @@ public class Program
         builder.Services.AddSingleton<IOfficeRepository, OfficeRepository>();
         builder.Services.AddScoped<IOfficeService, OfficeService>();
 
-        builder.Services.AddValidatorsFromAssemblyContaining<SaveOfficeDtoValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<OfficeUpdateDtoValidator>();
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();

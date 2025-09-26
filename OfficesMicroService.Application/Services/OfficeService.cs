@@ -63,53 +63,9 @@ public class OfficeService : IOfficeService
 
     public async Task UpdateAsync(string id, OfficeUpdateDto officeUpdateDto, CancellationToken cancellationToken = default)
     {
-        var updateBuilder = Builders<Office>.Update;
-        var updates = new List<UpdateDefinition<Office>>();
-
-        if (!string.IsNullOrEmpty(officeUpdateDto.PhotoId))
-        {
-            updates.Add(updateBuilder.Set(o => o.PhotoId, officeUpdateDto.PhotoId));
-        }
-
-        if (!string.IsNullOrEmpty(officeUpdateDto.City))
-        {
-            updates.Add(updateBuilder.Set(o => o.City, officeUpdateDto.City));
-        }
-
-        if (!string.IsNullOrEmpty(officeUpdateDto.Street))
-        {
-            updates.Add(updateBuilder.Set(o => o.Street, officeUpdateDto.Street));
-        }
-
-        if (!string.IsNullOrEmpty(officeUpdateDto.HouseNumber))
-        {
-            updates.Add(updateBuilder.Set(o => o.HouseNumber, officeUpdateDto.HouseNumber));
-        }
-
-        if (!string.IsNullOrEmpty(officeUpdateDto.OfficeNumber))
-        {
-            updates.Add(updateBuilder.Set(o => o.OfficeNumber, officeUpdateDto.OfficeNumber));
-        }
-
-        if (!string.IsNullOrEmpty(officeUpdateDto.RegistryPhoneNumber))
-        {
-            updates.Add(updateBuilder.Set(o => o.RegistryPhoneNumber, officeUpdateDto.RegistryPhoneNumber));
-        }
-
-        updates.Add(updateBuilder.Set(o => o.IsActive, officeUpdateDto.IsActive));
-
-        if (updates.Count == 0)
-        {
-            return;
-        }
-
-        var combinedUpdate = updateBuilder.Combine(updates);
-        var result = await _officeRepository.PartialUpdateAsync(id, combinedUpdate, cancellationToken);
-
-        if (!result)
-        {
-            throw new NotFoundException($"Office with id '{id}' not found or not modified.");
-        }
+        var office = await GetByIdAsync(id);
+        _mapper.Map(officeUpdateDto, office);
+        await _officeRepository.UpdateAsync(office, cancellationToken);
     }
 
     public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
@@ -119,7 +75,5 @@ public class OfficeService : IOfficeService
         {
             throw new NotFoundException($"Office with id '{id}' not found.");
         }
-
-        // подумать
     }
 }
