@@ -33,14 +33,14 @@ public static class OfficeEndpoints
             var office = await service.CreateAsync(officeCreateDto, ct);
             return Results.Created($"/offices/{office.Id}", office);
         })
-        .AddEndpointFilter<ValidationFilter<OfficeCreateDto>>();
+        .AddEndpointFilter(new ValidationFilter<OfficeCreateDto>());
 
         group.MapPut("/{id}", async (string id, OfficeUpdateDto officeUpdateDto, IOfficeService service, CancellationToken ct) =>
         {
             await service.UpdateAsync(id, officeUpdateDto, ct);
             return Results.NoContent();
         })
-        .AddEndpointFilter<ValidationFilter<OfficeUpdateDto>>();
+        .AddEndpointFilter(new ValidationFilter<OfficeUpdateDto>());
 
         group.MapDelete("/{id}", async (string id, IOfficeService service, CancellationToken ct) =>
         {

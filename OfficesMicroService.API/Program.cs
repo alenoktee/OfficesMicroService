@@ -11,6 +11,7 @@ using OfficesMicroService.API.Endpoints;
 using OfficesMicroService.API.Middleware;
 using OfficesMicroService.Application;
 using OfficesMicroService.Application.DTOs;
+using OfficesMicroService.Application.Exceptions;
 using OfficesMicroService.Application.Interfaces.Repositories;
 using OfficesMicroService.Application.Interfaces.Services;
 using OfficesMicroService.Application.Mapping;
@@ -18,6 +19,9 @@ using OfficesMicroService.Application.Services;
 using OfficesMicroService.Application.Validators;
 using OfficesMicroService.Infrastructure;
 using OfficesMicroService.Infrastructure.Repositories;
+
+using Polly;
+using Polly.CircuitBreaker;
 
 namespace OfficesMicroService;
 
@@ -36,7 +40,23 @@ public class Program
         builder.Services.AddSingleton<IOfficeRepository, OfficeRepository>();
         builder.Services.AddScoped<IOfficeService, OfficeService>();
 
+        builder.Services.AddValidatorsFromAssemblyContaining<OfficeCreateDtoValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<OfficeUpdateDtoValidator>();
+
+        builder.Services.AddSingleton<AsyncCircuitBreakerPolicy>(
+            Policy
+                .Handle<Exception>(ex => ex is MongoException or DuplicateAddressException or NotFoundException)
+                .CircuitBreakerAsync(
+                    exceptionsAllowedBeforeBreaking: 5,
+                    durationOfBreak: TimeSpan.FromSeconds(60),
+                    onBreak: (ex, breakDelay) => {
+                        Console.WriteLine($"Circuit breaker tripped due to: {ex.Message}. Breaking for {breakDelay.TotalSeconds} seconds.");
+                    },
+                    onReset: () => {
+                        Console.WriteLine("Circuit breaker reset.");
+                    }
+                )
+        );
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -57,6 +77,7 @@ public class Program
         }
 
         app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<PollyCircuitBreakerMiddleware>();
 
         if (app.Environment.IsDevelopment())
         {

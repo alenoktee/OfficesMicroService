@@ -1,30 +1,42 @@
+using FluentValidation;
+
 using System.ComponentModel.DataAnnotations;
 
 public class ValidationFilter<T> : IEndpointFilter where T : class
 {
+    private readonly string[] _ruleSets;
+
+    public ValidationFilter(params string[] ruleSets)
+    {
+        _ruleSets = ruleSets;
+    }
+
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        var argument = context.Arguments.FirstOrDefault(a => a?.GetType() == typeof(T));
-        if (argument is null)
+        var validator = context.HttpContext.RequestServices.GetService<IValidator<T>>();
+
+        if (validator is null)
         {
             return await next(context);
         }
 
-        var validationContext = new ValidationContext(argument);
-        var validationResults = new List<ValidationResult>();
-
-        if (!Validator.TryValidateObject(argument, validationContext, validationResults, true))
+        var validatable = context.Arguments.OfType<T>().FirstOrDefault();
+        if (validatable is null)
         {
-            var errors = validationResults
-                .GroupBy(r => r.MemberNames.FirstOrDefault() ?? string.Empty)
-                .ToDictionary(
-                group => group.Key,
-                group => group.Select(r => r.ErrorMessage)
-                              .Where(msg => msg is not null)
-                              .ToArray() as string[]
-                );
+            return await next(context);
+        }
 
-            return Results.ValidationProblem(errors);
+        var validationResult = await validator.ValidateAsync(validatable, options =>
+        {
+            if (_ruleSets is not null && _ruleSets.Length > 0)
+            {
+                options.IncludeRuleSets(_ruleSets);
+            }
+        });
+
+        if (!validationResult.IsValid)
+        {
+            return Results.ValidationProblem(validationResult.ToDictionary());
         }
 
         return await next(context);
