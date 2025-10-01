@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OfficesMicroService.Application\OfficesMicroService.Application.csproj" />
     <ProjectReference Include="..\OfficesMicroService.Domain\OfficesMicroService.Domain.csproj" />
   </ItemGroup>
 

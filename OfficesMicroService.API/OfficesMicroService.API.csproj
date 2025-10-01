@@ -4,10 +4,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>7920d51d-fa0e-446a-954c-088d87dc8eb5</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    <PackageReference Include="Polly" Version="8.6.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OfficesMicroService.Application\OfficesMicroService.Application.csproj" />
+    <ProjectReference Include="..\OfficesMicroService.Infrastructure\OfficesMicroService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
